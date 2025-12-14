@@ -223,15 +223,29 @@
 
 	$(function(){
 		initScrollAnimations();
-		var btn = document.getElementById('themeToggle');
-		var saved = localStorage.getItem('theme');
-		if(saved === 'dark'){ document.body.classList.add('theme-dark'); if(btn) btn.textContent = 'Light Mode'; }
-		if(btn){
-			btn.addEventListener('click', function(){
-				document.body.classList.toggle('theme-dark');
-				var isDark = document.body.classList.contains('theme-dark');
-				localStorage.setItem('theme', isDark ? 'dark' : 'light');
-				btn.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+
+		var contactForm = document.getElementById('contact-form');
+		if(contactForm){
+			contactForm.addEventListener('submit', function(e){
+				e.preventDefault();
+				var statusEl = document.getElementById('contact-status');
+				if(statusEl){ statusEl.textContent = 'Sending...'; }
+				var data = new URLSearchParams(new FormData(contactForm));
+				fetch('/api/contact', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+					body: data
+				}).then(function(res){ return res.json(); })
+				.then(function(json){
+					if(json && json.ok){
+						if(statusEl){ statusEl.textContent = 'Thanks! We have received your message.'; }
+						contactForm.reset();
+					} else {
+						if(statusEl){ statusEl.textContent = 'Please fill all fields correctly.'; }
+					}
+				}).catch(function(){
+					if(statusEl){ statusEl.textContent = 'Something went wrong. Please try again.'; }
+				});
 			});
 		}
 
